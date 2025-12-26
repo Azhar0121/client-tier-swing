@@ -12,11 +12,11 @@ public class InventarisTableModel extends AbstractTableModel {
     private List<Inventaris> inventarisList = new ArrayList<>();
 
     private final String[] columnNames = {
-        "ID",
-        "Nama Barang",
-        "Kategori",
-        "Kondisi",
-        "Jumlah"
+            "ID",
+            "Nama Barang",
+            "Kategori",
+            "Kondisi",
+            "Jumlah"
     };
 
     public void setInventarisList(List<Inventaris> inventarisList) {
@@ -41,6 +41,15 @@ public class InventarisTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(int column) {
         return columnNames[column];
+    }
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        return switch (columnIndex) {
+            case 0 -> Integer.class; // ID
+            case 4 -> Integer.class; // Jumlah
+            default -> String.class;
+        };
     }
 
     @Override

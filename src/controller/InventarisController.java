@@ -57,8 +57,7 @@ public class InventarisController {
                     frame,
                     "Gagal terhubung ke server realtime:\n" + e.getMessage(),
                     "Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -79,25 +78,43 @@ public class InventarisController {
                 if (e.getClickCount() == 2) {
                     int selectedRow = frame.getInventarisTable().getSelectedRow();
                     if (selectedRow >= 0) {
-                        openInventarisDialog(displayedInventaris.get(selectedRow));
+                        int modelRow = frame.getInventarisTable().convertRowIndexToModel(selectedRow);
+                        openInventarisDialog(frame.getInventarisTableModel().getInventarisAt(modelRow));
                     }
                 }
             }
         });
 
         frame.getSearchField().getDocument().addDocumentListener(new DocumentListener() {
-            @Override public void insertUpdate(DocumentEvent e) { applySearchFilter(); }
-            @Override public void removeUpdate(DocumentEvent e) { applySearchFilter(); }
-            @Override public void changedUpdate(DocumentEvent e) { applySearchFilter(); }
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                applySearchFilter();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                applySearchFilter();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                applySearchFilter();
+            }
 
             private void applySearchFilter() {
-                String keyword = frame.getSearchField().getText().toLowerCase().trim();
+                String keyword = frame.getSearchField().getText();
+                if (keyword == null)
+                    keyword = "";
+                keyword = keyword.toLowerCase().trim();
+
                 displayedInventaris = new ArrayList<>();
 
                 for (Inventaris inv : allInventaris) {
-                    if (inv.getNamaBarang().toLowerCase().contains(keyword)
-                            || inv.getKategori().toLowerCase().contains(keyword)
-                            || inv.getKondisi().toLowerCase().contains(keyword)) {
+                    String nama = inv.getNamaBarang() != null ? inv.getNamaBarang().toLowerCase() : "";
+                    String kategori = inv.getKategori() != null ? inv.getKategori().toLowerCase() : "";
+                    String kondisi = inv.getKondisi() != null ? inv.getKondisi().toLowerCase() : "";
+
+                    if (nama.contains(keyword) || kategori.contains(keyword) || kondisi.contains(keyword)) {
                         displayedInventaris.add(inv);
                     }
                 }
@@ -110,10 +127,9 @@ public class InventarisController {
 
     private void openInventarisDialog(Inventaris inventarisToEdit) {
 
-        InventarisDialog dialog =
-                (inventarisToEdit == null)
-                        ? new InventarisDialog(frame)
-                        : new InventarisDialog(frame, inventarisToEdit);
+        InventarisDialog dialog = (inventarisToEdit == null)
+                ? new InventarisDialog(frame)
+                : new InventarisDialog(frame, inventarisToEdit);
 
         dialog.getSaveButton().addActionListener(e -> {
             Inventaris inventaris = dialog.getInventaris();
@@ -145,19 +161,19 @@ public class InventarisController {
             return;
         }
 
-        Inventaris inv = displayedInventaris.get(selectedRow);
+        // convert view index to model index to handle sorting/filtering
+        int modelRow = frame.getInventarisTable().convertRowIndexToModel(selectedRow);
+        Inventaris inv = frame.getInventarisTableModel().getInventarisAt(modelRow);
 
         int confirm = JOptionPane.showConfirmDialog(
                 frame,
                 "Hapus barang:\n" + inv.getNamaBarang() + " (" + inv.getKategori() + ")?",
                 "Konfirmasi Hapus",
                 JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
+                JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            DeleteInventarisWorker worker =
-                    new DeleteInventarisWorker(frame, inventarisApiClient, inv);
+            DeleteInventarisWorker worker = new DeleteInventarisWorker(frame, inventarisApiClient, inv);
 
             worker.addPropertyChangeListener(evt -> {
                 if (SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
@@ -174,8 +190,7 @@ public class InventarisController {
         frame.getProgressBar().setIndeterminate(true);
         frame.getProgressBar().setString("Memuat data...");
 
-        LoadInventarisWorker worker =
-                new LoadInventarisWorker(frame, inventarisApiClient);
+        LoadInventarisWorker worker = new LoadInventarisWorker(frame, inventarisApiClient);
 
         worker.addPropertyChangeListener(evt -> {
             if (SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
