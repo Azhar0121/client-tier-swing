@@ -62,7 +62,6 @@ public class InventarisController {
     }
 
     private void handleWebSocketMessage(String message) {
-        // Setiap notifikasi realtime akan memicu reload data
         SwingUtilities.invokeLater(this::loadAllInventaris);
     }
 

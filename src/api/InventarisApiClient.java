@@ -110,8 +110,7 @@ public class InventarisApiClient {
                         if (!apiResp.success)
                                 throw new Exception(apiResp.message);
                 } catch (com.google.gson.JsonSyntaxException ex) {
-                        // Jika response bukan JSON yang diharapkan, munculkan body mentah untuk
-                        // debugging
+                        
                         throw new Exception(response.body());
                 }
         }
